@@ -3,7 +3,10 @@ package vn.creative.news.search.view;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -14,7 +17,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -44,8 +46,7 @@ import vn.creative.news.search.model.ArticleWithoutCoverModel;
 public class ArticleFrg extends Fragment {
     private static final String TAG = "ArticleFrg";
 
-    @Bind(R.id.rv_article_list)
-    RecyclerView rvArticleList;
+    @Bind(R.id.rv_article_list) RecyclerView rvArticleList;
 
     private int curPage = 0;
     private String mQuery;
@@ -87,7 +88,6 @@ public class ArticleFrg extends Fragment {
         menuInflater.inflate(R.menu.main_menu, menu);
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
-
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -112,7 +112,10 @@ public class ArticleFrg extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_setting:
-                Toast.makeText(getContext(), "Clicked!", Toast.LENGTH_SHORT).show();
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                Fragment fragment = new SettingFrg();
+                fragmentTransaction.replace(R.id.frg_container, fragment, "SettingFrg").addToBackStack("SettingFrg").commit();
                 return true;
 
             default:
