@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,19 +30,39 @@ public class CommonUtils {
 
     public static String getSearchLink(Activity activity, String query, int page) {
         try {
-            String result = "";
+            String result;
             query = URLEncoder.encode(query, "UTF-8");
             result = String.format(URL, query, page);
 
             SearchSettingModel searchSetting = new Gson().fromJson(PrefUtils.getInstance(activity).readString("setting"), SearchSettingModel.class);
             if (searchSetting != null) {
-                result += "&begin_date=" + yyyymmdd.format(new Date(searchSetting.getBeginTime()));
-                result += "&sort=" + searchSetting.getSortOrder();
+                if (searchSetting.getBeginTime() > 0) {
+                    result += "&begin_date=" + yyyymmdd.format(new Date(searchSetting.getBeginTime()));
+                }
+
+                if (!TextUtils.isEmpty(searchSetting.getSortOrder())) {
+                    result += "&sort=" + searchSetting.getSortOrder();
+                }
+
                 String ext = "";
-                String newsDeskExt = "&fq=news_desk:(%1$s)";
+                if (searchSetting.isFashion()) {
+                    ext += "\"Fashion\"";
+                }
+
+                if (searchSetting.isNaturalWorld()) {
+                    ext += "\"The natural world\"";
+                }
+
+                if (searchSetting.isTech()) {
+                    ext += "\"Technology\"";
+                }
+
+                if (!TextUtils.isEmpty(ext)) {
+                    result += String.format("&fq=news_desk:(%1$s)", ext);
+                }
             }
             return result;
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

@@ -1,11 +1,13 @@
 package vn.creative.news.search.view;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -14,8 +16,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -46,7 +50,8 @@ import vn.creative.news.search.model.ArticleWithoutCoverModel;
 public class ArticleFrg extends Fragment {
     private static final String TAG = "ArticleFrg";
 
-    @Bind(R.id.rv_article_list) RecyclerView rvArticleList;
+    @Bind(R.id.rv_article_list)
+    RecyclerView rvArticleList;
 
     private int curPage = 0;
     private String mQuery;
@@ -124,9 +129,23 @@ public class ArticleFrg extends Fragment {
     }
 
     private void fetchNews(final int page) {
-        try {
+        if (!CommonUtils.isNetworkAvailable(getContext())) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Error!")
+                    .setMessage("No connection!!!")
+                    .setCancelable(false)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+
+        } else try {
             mQuery = URLEncoder.encode(mQuery, "UTF-8");
             String url = CommonUtils.getSearchLink(getActivity(), mQuery, page);
+            System.out.println(url);
 
             AsyncHttpClient httpClient = new AsyncHttpClient();
             httpClient.get(url, new JsonHttpResponseHandler() {
