@@ -1,10 +1,12 @@
 package vn.creative.news.search.view;
 
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -18,9 +20,12 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.google.gson.Gson;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,6 +33,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import vn.creative.news.search.R;
+import vn.creative.news.search.common.PrefUtils;
+import vn.creative.news.search.model.SearchSettingModel;
 
 /**
  * Created by minhtan512 on 3/20/2016.
@@ -42,20 +49,21 @@ public class SettingFrg extends Fragment implements DatePickerDialog.OnDateSetLi
     @Bind(R.id.cb_tech)
     CheckBox cbTech;
 
-    @Bind(R.id.cb_sports)
-    CheckBox cbSports;
-
     @Bind(R.id.cb_fashion)
     CheckBox cbFashion;
+
+    @Bind(R.id.cb_natural_world)
+    CheckBox cbNaturalWorld;
 
     @Bind(R.id.btn_save)
     Button btnSave;
 
-    private String sortOrder, beginTime, newsDesk;
+    private String sortOrder = "newest";
+    private long beginTime;
 
     private ActionBar actionBar;
-    SimpleDateFormat ddmmyyyy = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
-    SimpleDateFormat yyyymmdd = new SimpleDateFormat("yyyyMMdd", Locale.US);
+    private SearchSettingModel searchSetting;
+    private SimpleDateFormat ddmmyyyy = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
     @Nullable
     @Override
@@ -93,6 +101,17 @@ public class SettingFrg extends Fragment implements DatePickerDialog.OnDateSetLi
                 sortOrder = "newest";
             }
         });
+
+        searchSetting = new Gson().fromJson(PrefUtils.getInstance(getActivity()).readString("setting"), SearchSettingModel.class);
+        if (searchSetting != null) {
+            beginTime = searchSetting.getBeginTime();
+            etTime.setText(ddmmyyyy.format(new Date(beginTime)));
+            spSortOrder.setSelection(categories.indexOf(searchSetting.getSortOrder()));
+            cbFashion.setChecked(searchSetting.isFashion());
+            cbNaturalWorld.setChecked(searchSetting.isNaturalWorld());
+            cbTech.setChecked(searchSetting.isTech());
+        }
+
         return view;
     }
 
@@ -102,6 +121,35 @@ public class SettingFrg extends Fragment implements DatePickerDialog.OnDateSetLi
         datePickerFrg.show(getFragmentManager(), "DatePickerFrg");
     }
 
+    @OnClick(R.id.btn_save)
+    void saveSetting() {
+        if (etTime.getText().length() == 0) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Error!")
+                    .setMessage("Please choose begin time!!!")
+                    .setCancelable(false)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+            return;
+        }
+
+        if (searchSetting == null) {
+            searchSetting = new SearchSettingModel();
+        }
+        searchSetting.setBeginTime(beginTime);
+        searchSetting.setTech(cbTech.isChecked());
+        searchSetting.setFashion(cbFashion.isChecked());
+        searchSetting.setNaturalWorld(cbNaturalWorld.isChecked());
+
+        PrefUtils.getInstance(getActivity()).writeString("setting", new Gson().toJson(searchSetting));
+        getActivity().onBackPressed();
+    }
+
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         final Calendar c = Calendar.getInstance();
@@ -109,7 +157,7 @@ public class SettingFrg extends Fragment implements DatePickerDialog.OnDateSetLi
         c.set(Calendar.MONTH, monthOfYear);
         c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         etTime.setText(ddmmyyyy.format(c.getTime()));
-        beginTime = yyyymmdd.format(c.getTime());
+        beginTime = c.getTime().getTime();
     }
 
     @Override
@@ -124,7 +172,6 @@ public class SettingFrg extends Fragment implements DatePickerDialog.OnDateSetLi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            // This is the up button
             case android.R.id.home:
                 getActivity().onBackPressed();
                 return true;

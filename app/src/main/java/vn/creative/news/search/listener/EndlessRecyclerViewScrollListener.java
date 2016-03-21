@@ -1,4 +1,4 @@
-package vn.creative.news.search.view;
+package vn.creative.news.search.listener;
 
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;

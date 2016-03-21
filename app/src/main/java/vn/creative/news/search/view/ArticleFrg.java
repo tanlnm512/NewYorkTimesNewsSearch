@@ -6,7 +6,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -37,6 +36,7 @@ import cz.msebera.android.httpclient.Header;
 import vn.creative.news.search.R;
 import vn.creative.news.search.adapter.ArticleAdapter;
 import vn.creative.news.search.common.CommonUtils;
+import vn.creative.news.search.listener.EndlessRecyclerViewScrollListener;
 import vn.creative.news.search.model.ArticleModel;
 import vn.creative.news.search.model.ArticleWithoutCoverModel;
 
@@ -126,7 +126,7 @@ public class ArticleFrg extends Fragment {
     private void fetchNews(final int page) {
         try {
             mQuery = URLEncoder.encode(mQuery, "UTF-8");
-            String url = CommonUtils.getSearchLink(mQuery, page);
+            String url = CommonUtils.getSearchLink(getActivity(), mQuery, page);
 
             AsyncHttpClient httpClient = new AsyncHttpClient();
             httpClient.get(url, new JsonHttpResponseHandler() {
